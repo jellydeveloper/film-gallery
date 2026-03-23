@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Andrew Choi — Film</title>
+  <link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=DM+Mono:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --film-dark: #0d0b08;
+      --film-strip: #151209;
+      --film-edge: #1e1a12;
+      --sprocket: #0a0906;
+      --cream: #c9b98a;
+      --muted: #5a4e38;
+      --faint: #2a2318;
+    }
+
+    body {
+      background: var(--film-dark);
+      color: var(--cream);
+      font-family: 'DM Mono', monospace;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow-x: hidden;
+    }
+
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+      opacity: 0.055;
+      pointer-events: none;
+      z-index: 999;
+    }
+
+    header {
+      text-align: center;
+      padding: 4rem 2rem 2.5rem;
+    }
+
+    .eyebrow {
+      font-size: 10px;
+      letter-spacing: 0.4em;
+      color: var(--muted);
+      text-transform: uppercase;
+      margin-bottom: 1rem;
+    }
+
+    h1 {
+      font-family: 'Special Elite', cursive;
+      font-size: clamp(2rem, 5vw, 3.5rem);
+      color: var(--cream);
+      letter-spacing: 0.03em;
+      line-height: 1;
+      margin-bottom: 0.6rem;
+    }
+
+    .tagline {
+      font-size: 10px;
+      letter-spacing: 0.35em;
+      color: var(--faint);
+      text-transform: uppercase;
+    }
+
+    .divider {
+      width: 1px;
+      height: 40px;
+      background: var(--faint);
+      margin: 0 auto 2.5rem;
+    }
+
+    .scroll-hint {
+      font-size: 9px;
+      letter-spacing: 0.3em;
+      color: var(--faint);
+      text-transform: uppercase;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+    }
+
+    .scroll-hint::before,
+    .scroll-hint::after {
+      content: '';
+      width: 24px;
+      height: 1px;
+      background: var(--faint);
+    }
+
+    .film-outer-wrap {
+      width: 100%;
+      position: relative;
+    }
+
+    .film-outer-wrap::before,
+    .film-outer-wrap::after {
+      content: '';
+      position: absolute;
+      top: 0; bottom: 0;
+      width: 80px;
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    .film-outer-wrap::before {
+      left: 0;
+      background: linear-gradient(to right, var(--film-dark), transparent);
+    }
+
+    .film-outer-wrap::after {
+      right: 0;
+      background: linear-gradient(to left, var(--film-dark), transparent);
+    }
+
+    .film-outer {
+      width: 100%;
+      overflow-x: auto;
+      overflow-y: visible;
+      scrollbar-width: thin;
+      scrollbar-color: #2a2218 var(--film-dark);
+      cursor: grab;
+      user-select: none;
+      padding: 40px 5rem;
+    }
+
+    .film-outer:active { cursor: grabbing; }
+    .film-outer::-webkit-scrollbar { height: 3px; }
+    .film-outer::-webkit-scrollbar-track { background: var(--film-dark); }
+    .film-outer::-webkit-scrollbar-thumb { background: #2a2218; border-radius: 2px; }
+
+    .film-strip {
+      display: inline-flex;
+      flex-direction: column;
+      background: var(--film-strip);
+      position: relative;
+      min-width: max-content;
+      border-left: 3px solid var(--film-edge);
+      border-right: 3px solid var(--film-edge);
+    }
+
+    .sprockets {
+      display: flex;
+      align-items: center;
+      height: 36px;
+      background: var(--film-edge);
+      overflow: hidden;
+    }
+
+    .sprocket-hole {
+      width: 22px;
+      height: 18px;
+      border-radius: 4px;
+      background: var(--sprocket);
+      flex-shrink: 0;
+      margin: 0 18px;
+      box-shadow: inset 0 1px 3px rgba(0,0,0,0.8);
+    }
+
+    .photos-row {
+      display: flex;
+      gap: 0;
+      padding: 12px 0;
+      background: var(--film-strip);
+      align-items: center;
+    }
+
+    .photo-frame {
+      position: relative;
+      flex-shrink: 0;
+      margin: 0 4px;
+      z-index: 1;
+      transition: z-index 0s 0.4s;
+    }
+
+    .photo-frame:hover {
+      z-index: 20;
+      transition: z-index 0s 0s;
+    }
+
+    .photo-wrap {
+      position: relative;
+      overflow: hidden;
+      width: 280px;
+      height: 210px;
+    }
+
+    .photo-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      filter: sepia(0.2) contrast(1.06) brightness(0.92) saturate(0.9);
+      transform: scale(1);
+      transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94), filter 0.5s ease;
+      pointer-events: none;
+    }
+
+    .photo-frame:hover .photo-wrap img {
+      transform: scale(1.09);
+      filter: sepia(0.05) contrast(1.08) brightness(1.02) saturate(1.0);
+    }
+
+    .photo-wrap::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      box-shadow: inset 0 0 0 1px rgba(201, 185, 138, 0.15);
+      pointer-events: none;
+      transition: box-shadow 0.4s ease;
+    }
+
+    .photo-frame:hover .photo-wrap::after {
+      box-shadow: inset 0 0 0 1px rgba(201, 185, 138, 0.4), 0 30px 80px rgba(0,0,0,0.9);
+    }
+
+    .photo-label {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 5px 2px 0;
+    }
+
+    .frame-num {
+      font-size: 9px;
+      letter-spacing: 0.2em;
+      color: var(--faint);
+    }
+
+    .frame-dot {
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: var(--faint);
+    }
+
+    footer {
+      padding: 2.5rem 2rem 3rem;
+      text-align: center;
+    }
+
+    .footer-text {
+      font-size: 9px;
+      letter-spacing: 0.35em;
+      color: var(--faint);
+      text-transform: uppercase;
+      line-height: 2;
+    }
+
+    .footer-link {
+      color: var(--muted);
+      text-decoration: none;
+      letter-spacing: 0.35em;
+      font-size: 9px;
+      text-transform: uppercase;
+      transition: color 0.3s;
+    }
+
+    .footer-link:hover { color: var(--cream); }
+
+    /* Lightbox */
+    .lightbox {
+      position: fixed;
+      inset: 0;
+      background: rgba(10, 8, 5, 0.96);
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.4s ease;
+    }
+
+    .lightbox.active {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .lightbox-img {
+      max-width: 88vw;
+      max-height: 75vh;
+      object-fit: contain;
+      filter: sepia(0.1) contrast(1.05) brightness(0.96);
+      transform: scale(0.94);
+      transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+
+    .lightbox.active .lightbox-img {
+      transform: scale(1);
+    }
+
+    .lightbox-label {
+      margin-top: 1.5rem;
+      text-align: center;
+    }
+
+    .lightbox-name {
+      font-family: 'Special Elite', cursive;
+      font-size: clamp(1rem, 3vw, 1.6rem);
+      color: var(--cream);
+      letter-spacing: 0.08em;
+    }
+
+    .lightbox-num {
+      font-size: 9px;
+      letter-spacing: 0.35em;
+      color: var(--muted);
+      text-transform: uppercase;
+      margin-top: 0.4rem;
+    }
+
+    .lightbox-close {
+      position: fixed;
+      top: 2rem;
+      right: 2rem;
+      font-size: 9px;
+      letter-spacing: 0.3em;
+      color: var(--muted);
+      text-transform: uppercase;
+      cursor: pointer;
+      background: none;
+      border: none;
+      font-family: 'DM Mono', monospace;
+      transition: color 0.2s;
+    }
+
+    .lightbox-close:hover { color: var(--cream); }
+
+    .photo-wrap { cursor: pointer; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <p class="eyebrow">35mm · Film Photography</p>
+    <h1>Andrew Choi</h1>
+    <p class="tagline">Photographs · 2024–2025</p>
+  </header>
+
+  <div class="divider"></div>
+  <p class="scroll-hint">drag to scroll</p>
+
+  <div class="film-outer-wrap">
+    <div class="film-outer" id="filmOuter">
+      <div class="film-strip" id="filmStrip">
+
+        <div class="sprockets" id="topSprockets"></div>
+
+        <div class="photos-row">
+
+          <div class="photo-frame">
+            <div class="photo-wrap">
+              <img src="kyoto_tower.jpg" alt="Kyoto Tower" draggable="false">
+            </div>
+            <div class="photo-label">
+              <span class="frame-num">01</span>
+              <span class="frame-dot"></span>
+              <span class="frame-num">Kyoto</span>
+            </div>
+          </div>
+
+          <div class="photo-frame">
+            <div class="photo-wrap">
+              <img src="lonelytree.JPG" alt="Lonely Tree" draggable="false">
+            </div>
+            <div class="photo-label">
+              <span class="frame-num">02</span>
+              <span class="frame-dot"></span>
+              <span class="frame-num">——</span>
+            </div>
+          </div>
+
+          <div class="photo-frame">
+            <div class="photo-wrap">
+              <img src="sunset_guy.JPG" alt="Sunset" draggable="false">
+            </div>
+            <div class="photo-label">
+              <span class="frame-num">03</span>
+              <span class="frame-dot"></span>
+              <span class="frame-num">Seoul</span>
+            </div>
+          </div>
+
+          <div class="photo-frame">
+            <div class="photo-wrap">
+              <img src="lotte_tower.JPG" alt="Lotte Tower" draggable="false">
+            </div>
+            <div class="photo-label">
+              <span class="frame-num">04</span>
+              <span class="frame-dot"></span>
+              <span class="frame-num">Seoul</span>
+            </div>
+          </div>
+
+          <div class="photo-frame">
+            <div class="photo-wrap">
+              <img src="myselfgermany.JPG" alt="Germany" draggable="false">
+            </div>
+            <div class="photo-label">
+              <span class="frame-num">05</span>
+              <span class="frame-dot"></span>
+              <span class="frame-num">Europe</span>
+            </div>
+          </div>
+
+          <div class="photo-frame">
+            <div class="photo-wrap">
+              <img src="berlin.JPG" alt="Berlin" draggable="false">
+            </div>
+            <div class="photo-label">
+              <span class="frame-num">06</span>
+              <span class="frame-dot"></span>
+              <span class="frame-num">Berlin</span>
+            </div>
+          </div>
+
+          <div class="photo-frame">
+            <div class="photo-wrap">
+              <img src="jeju.JPG" alt="Jeju" draggable="false">
+            </div>
+            <div class="photo-label">
+              <span class="frame-num">07</span>
+              <span class="frame-dot"></span>
+              <span class="frame-num">Jeju</span>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="sprockets" id="bottomSprockets"></div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Lightbox -->
+  <div class="lightbox" id="lightbox">
+    <button class="lightbox-close" id="lightboxClose">✕ close</button>
+    <img class="lightbox-img" id="lightboxImg" src="" alt="">
+    <div class="lightbox-label">
+      <p class="lightbox-name" id="lightboxName"></p>
+      <p class="lightbox-num" id="lightboxNum"></p>
+    </div>
+  </div>
+
+  <footer>
+    <p class="footer-text">
+      <a href="https://andrewchoiux.framer.website" class="footer-link">andrewchoiux.framer.website</a>
+    </p>
+    <p class="footer-text" style="margin-top:0.5rem;">© Andrew Choi · All rights reserved</p>
+  </footer>
+
+  <script>
+    function buildSprockets(id, count) {
+      const el = document.getElementById(id);
+      el.innerHTML = '';
+      for (let i = 0; i < count; i++) {
+        const hole = document.createElement('div');
+        hole.className = 'sprocket-hole';
+        el.appendChild(hole);
+      }
+    }
+
+    function syncSprockets() {
+      const strip = document.getElementById('filmStrip');
+      const count = Math.ceil(strip.offsetWidth / 58) + 2;
+      buildSprockets('topSprockets', count);
+      buildSprockets('bottomSprockets', count);
+    }
+
+    syncSprockets();
+    window.addEventListener('resize', syncSprockets);
+
+    const outer = document.getElementById('filmOuter');
+    let dragging = false, startX = 0, scrollStart = 0;
+
+    outer.addEventListener('mousedown', e => {
+      dragging = true;
+      startX = e.pageX - outer.offsetLeft;
+      scrollStart = outer.scrollLeft;
+    });
+
+    document.addEventListener('mouseup', () => { dragging = false; });
+    document.addEventListener('mousemove', e => {
+      if (!dragging) return;
+      e.preventDefault();
+      const x = e.pageX - outer.offsetLeft;
+      outer.scrollLeft = scrollStart - (x - startX) * 1.4;
+    });
+
+    outer.addEventListener('touchstart', e => {
+      startX = e.touches[0].pageX;
+      scrollStart = outer.scrollLeft;
+    }, { passive: true });
+
+    outer.addEventListener('touchmove', e => {
+      outer.scrollLeft = scrollStart - (e.touches[0].pageX - startX);
+    }, { passive: true });
+
+    // Lightbox
+    const lightbox = document.getElementById('lightbox');
+    const lightboxImg = document.getElementById('lightboxImg');
+    const lightboxName = document.getElementById('lightboxName');
+    const lightboxNum = document.getElementById('lightboxNum');
+    let didDrag = false;
+    let mouseDownX = 0;
+
+    outer.addEventListener('mousedown', e => { didDrag = false; mouseDownX = e.pageX; });
+    outer.addEventListener('mousemove', e => { if (Math.abs(e.pageX - mouseDownX) > 6) didDrag = true; });
+
+    document.querySelectorAll('.photo-wrap').forEach(wrap => {
+      wrap.addEventListener('click', () => {
+        if (didDrag) return;
+        const img = wrap.querySelector('img');
+        const label = wrap.closest('.photo-frame').querySelector('.photo-label');
+        const spans = label.querySelectorAll('.frame-num');
+        lightboxImg.src = img.src;
+        lightboxImg.alt = img.alt;
+        lightboxName.textContent = spans[1].textContent;
+        lightboxNum.textContent = 'Frame ' + spans[0].textContent;
+        lightbox.classList.add('active');
+        document.body.style.overflow = 'hidden';
+      });
+    });
+
+    function closeLightbox() {
+      lightbox.classList.remove('active');
+      document.body.style.overflow = '';
+    }
+
+    document.getElementById('lightboxClose').addEventListener('click', closeLightbox);
+    lightbox.addEventListener('click', e => { if (e.target === lightbox) closeLightbox(); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox(); });
+  </script>
+</body>
+</html>
